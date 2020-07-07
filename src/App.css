@@ -1,21 +1,23 @@
+* {
+  box-sizing: border-box;
+}
+
 .App {
-  text-align: center;
-}
-
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
-  }
-}
-
-.App-header {
-  background-color: #282c34;
+  display: flex;
+  width: 100%;
+  flex-direction: column;
   min-height: 100vh;
+}
+
+.container {
+  max-width: 1000px;
+  margin: auto;
+}
+
+.header {
+  text-align: center;
+  background-color: #282c34;
+  height: 80px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -24,15 +26,316 @@
   color: white;
 }
 
-.App-link {
-  color: #61dafb;
+.body {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 0;
 }
 
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
+.shaka-video-container {
+  display: table!important;
+  margin: 0 auto 10px auto;
+}
+
+.videoPageContent {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 0;
+  padding: 10px 0;
+}
+
+.graphBox {
+  width: 720px;
+  flex-grow: 1;
+  flex-shrink: 0;
+  flex-basis: 0;
+  overflow: scroll;
+  overflow-x: hidden;
+  box-shadow: 0 0 30px 0 rgba(0, 0, 0, 0.1);
+  margin: auto;
+}
+
+.graphBox-content {
+  display: flex;
+  height: 100%;
+  flex-direction: column-reverse;
+  padding-left: 60px;
+}
+
+.graphBox-header {
+  display: flex;
+  position: sticky;
+  left: 0;
+  top: 0;
+  background: #fff;
+  padding: 3px 10px;
+  height: 30px;
+  z-index: 100;
+  margin-bottom: 10px;
+  box-shadow: 0 0 30px 0 rgba(0, 0, 0, 0.1);
+
+  font-size: 11px;
+  line-height: 12px;
+  align-items: center;
+}
+
+.graphBox-timelinePos {
+  width: 60px;
+}
+
+.graphBox-headerBuffSize {
+  width: 60px;
+}
+
+.graphBox-headerBuffering {
+  width: 80px;
+  text-align: center;
+}
+
+.graphBox-headerBw {
+  padding: 0 10px;
+}
+
+.graphBox-headerBufferingIcon,
+.graphBox-headerBwIcon {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  margin: 1px 3px -1px 0;
+  border-radius: 50%;
+}
+
+.yes {
+  background-color: #5490cf;
+}
+
+.no {
+  background-color: #e0e6f3;
+}
+
+.stream {
+  background-color: crimson;
+}
+.estimated {
+  background-color: antiquewhite;
+}
+
+.graphBox-headerUpperLimit {
+  margin-left: auto;
+}
+
+.graphBox-content:hover .graphItemBox {
+  opacity: 0.65;
+}
+
+.graphBox-content:hover .graphItemBox:hover {
+  opacity: 1;
+}
+
+
+.graphItemBox {
+  cursor: pointer;
+}
+
+.graphItemBox:hover .graphItem-bufferText {
+  color: #000;
+}
+
+.graphItemBox:hover .graphItem-info {
+  opacity: 1;
+}
+
+.graphItem {
+  display: flex;
+  padding: 0 10px 0 10px;
+  height: 0;
+  overflow: hidden;
+  animation: appear 0.25s linear;
+  animation-iteration-count: 1;
+  animation-fill-mode: forwards;
+  flex-wrap: wrap;
+}
+
+.graphItem:after {
+  content: '';
+  display: block;
+  width: calc(100% - 60px);
+  margin-left: 60px;
+  margin-top: -1px;
+  background-color: #ffffff;
+  height: 1px;
+  z-index: 10;
+  opacity: 0.5;
+}
+
+@keyframes appear {
+  0% {
+    height: 0;
+    overflow: hidden;
   }
-  to {
-    transform: rotate(360deg);
+  100% {
+    height: 6px;
+    overflow: visible;
   }
+}
+
+.graphItem-buffer {
+  width: 20px;
+  height: 5px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  margin: 0 40px 0 0;
+  font-size: 10px;
+  line-height: 10px;
+  position: relative;
+}
+
+.graphItem-bufferText {
+  background-color: #fff;
+  padding: 0 2px 0 0;
+  color: rgba(0, 0, 0, 0.3);
+}
+
+.graphItem-buffer:before {
+  content: '';
+  display: block;
+  width: 60px;
+  height: 1px;
+  background-color: #e0e6f3;
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  margin: auto;
+  z-index: -1;
+}
+
+.graphItemBox:nth-child(odd) .graphItem-buffer {
+  margin: 0 20px 0 20px;
+}
+
+.graphItemBox:nth-child(odd) .graphItem-buffer:before {
+  width: 40px;
+}
+
+.graphItem-isBuffering {
+  display: block;
+  width: 80px;
+  height: 100%;
+  margin: 0 2px 0 0;
+  background-color: #e0e6f3;
+}
+
+.graphItem-isBuffering.isActive {
+  background-color: #5490cf;
+}
+
+.graphItem-bw {
+  flex: 1 1 0;
+  position: relative;
+  background-color: #f2f5fa;
+  overflow: hidden;
+}
+
+.graphItem-bwStream {
+  position: absolute;
+  left: 0;
+  top: 0;
+  height: 100%;
+  background-color: crimson;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  font-size: 0;
+}
+
+.graphItem-bwEstimated {
+  position: absolute;
+  left: 0;
+  top: 0;
+  height: 100%;
+  background-color: antiquewhite;
+  z-index: 1;
+  text-align: right;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  font-size: 0;
+}
+
+.graphItem-infoBox {
+  width: 0;
+  height: 0;
+  position: relative;
+  z-index: 100;
+}
+
+.graphItem-info {
+  position: absolute;
+  top: 3px;
+  right: 3px;
+  background-color: #ffffff;
+  z-index: 50;
+  opacity: 0;
+  padding: 3px;
+  font-size: 11px;
+  line-height: 13px;
+}
+
+.graphItem-infoItem {
+  white-space: nowrap;
+}
+
+.graphBox-timeline {
+  width: 60px;
+  height: 100%;
+  margin-right: -60px;
+  float: left;
+  display: flex;
+  flex-direction: column-reverse;
+}
+
+.graphTimelineItemBox {}
+
+.graphTimelineItemBox:first-child .graphBox-timelineItem {
+  border: none;
+}
+
+.graphBox-timelineItem {
+  font-size: 11px;
+  text-align: right;
+  border-bottom: 1px solid #e0e6f3;
+  position: relative;
+
+  height: var(--height);
+  color: rgba(0, 0, 0, 0);
+  animation: appear2 1s linear;
+  animation-iteration-count: 1;
+  animation-fill-mode: forwards;
+
+  will-change: height;
+}
+
+@keyframes appear2 {
+  0% {
+    height: 0;
+    overflow: hidden;
+  }
+  100% {
+    height: var(--height);
+    overflow: visible;
+    color: rgba(0, 0, 0, 1);
+  }
+}
+
+.graphBox-timelineItemText {
+  position: absolute;
+  left: 13px;
+  bottom: 0;
+  height: var(--height);
+
+  display: flex;
+  align-items: center;
 }

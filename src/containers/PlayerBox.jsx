@@ -10,6 +10,8 @@ import 'shaka-player/dist/controls.css';
 function PlayerBox({ uri, actions, isBuffering }) {
   const playerRef = useRef(null);
 
+  let timeStreamer;
+
   async function playerLoadUri() {
     const { current } = playerRef || {}
     const { player } = current || {};
@@ -27,7 +29,15 @@ function PlayerBox({ uri, actions, isBuffering }) {
       const { buffering } = e;
 
       actions.toggleBuffering(buffering);
-      actions.togglePlaying(true);
+
+      if (buffering) {
+        actions.togglePlaying(true);
+      }
+
+      if (!timeStreamer) {
+        startTimeStreaming();
+      }
+
       actions.setBufferSize(player.getConfiguration().streaming.bufferingGoal);
     })
 
@@ -36,18 +46,45 @@ function PlayerBox({ uri, actions, isBuffering }) {
     })
 
     videoElement.addEventListener('playing', () => {
+      startTimeStreaming();
       actions.togglePlaying(true);
     });
 
     videoElement.addEventListener('pause', (e) => {
+      stopTimeStreaming();
       actions.togglePlaying(false);
     });
 
     videoElement.addEventListener('ended', () => {
+      stopTimeStreaming();
       actions.togglePlaying(false);
     });
 
     videoElement.play();
+  }
+
+  function startTimeStreaming() {
+    const { current } = playerRef || {}
+    const { videoElement } = current || {};
+
+    if (timeStreamer) {
+      return
+    }
+
+    actions.setCurrentTime(videoElement.currentTime);
+
+    timeStreamer = setTimeout(refreshCurrentTime, 1000, videoElement);
+  }
+
+  function refreshCurrentTime(videoElement) {
+    actions.setCurrentTime(videoElement.currentTime);
+
+    timeStreamer = setTimeout(refreshCurrentTime, 1000, videoElement);
+  }
+
+  function stopTimeStreaming() {
+    clearTimeout(timeStreamer);
+    timeStreamer = undefined;
   }
 
   function updatePlaybackStats() {

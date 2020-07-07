@@ -4,8 +4,8 @@ import PropTypes from 'prop-types';
 import { connect } from 'react-redux'
 
 const REFRESH_RATE = 250; // MS
-const MAX_GRAPH_TIMERANGE = 600; // MS
-const MAX_GRAPH_ITEMS = Math.trunc(1000 / REFRESH_RATE * MAX_GRAPH_TIMERANGE);
+const MAX_GRAPH_TIME_RANGE = 600; // MS
+const MAX_GRAPH_ITEMS = Math.trunc(1000 / REFRESH_RATE * MAX_GRAPH_TIME_RANGE);
 
 class ChartBox extends PureComponent {
   static propTypes = {
@@ -28,35 +28,64 @@ class ChartBox extends PureComponent {
     super(props);
 
     this.state = {
-      upperLimit: -Infinity
+      upperLimit: -Infinity,
+      graphTicks: 1000 / REFRESH_RATE,
     }
   }
 
   startGraph = () => {
-    if (this.grapRefresher) {
+    if (this.graphRefresher) {
       return null;
     }
 
     const graphBox = document.getElementById('Graph1').getElementsByClassName('graphBox-content')[0];
+    const timelineBox = document.getElementById('Graph1').getElementsByClassName('graphBox-timeline')[0];
 
-    this.grapRefresher = setInterval( () => {
-      console.log(MAX_GRAPH_ITEMS);
-
-      if (graphBox.childElementCount > MAX_GRAPH_ITEMS) {
-        this.removeGraphItem(graphBox);
-      }
-
-      this.createGraphItem(graphBox);
-    }, REFRESH_RATE);
+    this.graphRefresher = setTimeout( this.refreshGraph, REFRESH_RATE, graphBox, timelineBox);
 
     return null;
   }
 
+  refreshGraph = (graphBox, timelineBox) => {
+    if (graphBox.childElementCount > MAX_GRAPH_ITEMS) {
+      this.removeGraphItem(graphBox);
+      this.removeTimeLineItem(timelineBox);
+    }
+
+    const { graphTicks } = this.state;
+
+    this.createGraphItem(graphBox);
+
+    if (graphTicks >= (1000 / REFRESH_RATE)) {
+      this.setState({ graphTicks: 1 })
+      this.createTimelineItem(timelineBox)
+    } else {
+      this.setState({ graphTicks: (graphTicks + 1) })
+    }
+
+    this.graphRefresher = setTimeout( this.refreshGraph, REFRESH_RATE, graphBox, timelineBox);
+  }
+
   stopGraph() {
-    clearTimeout(this.grapRefresher);
-    this.grapRefresher = undefined;
+    clearTimeout(this.graphRefresher);
+    this.graphRefresher = undefined;
+
+    clearTimeout(this.timelineRefresher);
+    this.timelineRefresher = undefined;
 
     return null;
+  }
+
+  createTimelineItem = (timelineBox) => {
+    const newEl = document.createElement('DIV');
+    newEl.classList.add('graphTimelineItemBox');
+    newEl.innerHTML = renderToString(this.renderTimelineItem());
+
+    timelineBox.appendChild(newEl);
+  }
+
+  removeTimeLineItem = (timelineBox) => {
+    timelineBox.removeChild(timelineBox.childNodes[0])
   }
 
   createGraphItem = (graphBox) => {
@@ -87,11 +116,10 @@ class ChartBox extends PureComponent {
     return upperLimit
   }
 
-
   renderGraphItem = () => {
     const { streamBandwidth, estimatedBandwidth, bufferSize, isBuffering } = this.props;
 
-    if (!streamBandwidth || !estimatedBandwidth || !bufferSize) {
+    if (!streamBandwidth || !estimatedBandwidth) {
       return null;
     }
 
@@ -131,6 +159,34 @@ class ChartBox extends PureComponent {
     )
   }
 
+  renderTimelineItem = () => {
+    const { currentTime } = this.props;
+
+    if (currentTime === null) {
+      return null;
+    }
+
+    const GRAPH_ITEM_HEIGHT = 6;
+
+    const style = {
+      '--height': `${1000 / REFRESH_RATE * GRAPH_ITEM_HEIGHT}px`
+    }
+
+    return (
+      <div className="graphBox-timelineItem" style={style}>
+        <div className="graphBox-timelineItemText">{this.formatCurrentTime(currentTime)}</div>
+      </div>
+    )
+  }
+
+  formatCurrentTime = (time) => {
+    const total = Math.round(time);
+    const minutes = Math.trunc(total / 60);
+    const seconds = Math.trunc(total - minutes * 60);
+
+    return `${minutes}: ${seconds < 10 ? `0${seconds}` : seconds}`;
+  }
+
   render() {
     const { upperLimit } = this.state;
     const { isPlaying } = this.props;
@@ -140,16 +196,18 @@ class ChartBox extends PureComponent {
         {isPlaying ? this.startGraph() : this.stopGraph()}
         <div className="graphBox" id="Graph1">
           <div className="graphBox-header">
+            <div className="graphBox-timelinePos">Timeline position</div>
             <div className="graphBox-headerBuffSize">Buffer size (sec)</div>
             <div className="graphBox-headerBuffering">
               Buffering<br />
               <span><i className="graphBox-headerBufferingIcon yes" />Yes</span>, <span><i className="graphBox-headerBufferingIcon no" />No</span>
             </div>
-            <div className="graphBox-headerBw"><span><i className="graphBox-headerBwIcon stream" />Stream BandWidth</span>, <span><i className="graphBox-headerBwIcon estimated" />Estimated BandWidth</span></div>
+            <div className="graphBox-headerBw"><span><i className="graphBox-headerBwIcon stream" />Stream Bandwidth</span>, <span><i className="graphBox-headerBwIcon estimated" />Estimated Bandwidth</span></div>
             {upperLimit > 0 && (
-              <div className="graphBox-headerUpperLimit">Max Scale BandWidth b/s: {upperLimit}</div>
+              <div className="graphBox-headerUpperLimit">Max Scale Bandwidth b/s: {upperLimit}</div>
             )}
           </div>
+          <div className="graphBox-timeline" />
           <div className="graphBox-content" />
         </div>
       </>
@@ -159,7 +217,7 @@ class ChartBox extends PureComponent {
 
 const mapStateToProps = (state) => {
   const { player } = state;
-  const { streamBandwidth, estimatedBandwidth, bufferSize, isBuffering, isPlaying } = player;
+  const { streamBandwidth, estimatedBandwidth, bufferSize, isBuffering, isPlaying, currentTime } = player;
 
   return {
     streamBandwidth,
@@ -167,6 +225,7 @@ const mapStateToProps = (state) => {
     bufferSize,
     isBuffering,
     isPlaying,
+    currentTime,
   }
 };
 

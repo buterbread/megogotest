@@ -1,24 +1,29 @@
-import {
-  LOAD,
-  LOAD_START,
-  LOAD_SUCCESS,
-  LOAD_FAIL,
-} from './constants';
-
-export const load = () => ({
-  type: LOAD,
+export const setStreamBandwidth = (data) => ({
+  type: 'SET_CURRENT_BANDWIDTH',
+  payload: data,
 });
 
-export const loadStart = () => ({
-  type: LOAD_START,
+export const setEstimatedBandwidth = (data) => ({
+  type: 'SET_ESTIMATED_BANDWIDTH',
+  payload: data,
 });
 
-export const loadSuccess = (config) => ({
-  type: LOAD_SUCCESS,
-  payload: config,
+export const setBufferSize = (data) => ({
+  type: 'SET_BUFFER_SIZE',
+  payload: data,
 });
 
-export const loadFail = (error) => ({
-  type: LOAD_FAIL,
-  payload: error,
+export const toggleBuffering = (data) => ({
+  type: 'TOGGLE_BUFFERING',
+  payload: data,
+});
+
+export const togglePlaying = (data) => ({
+  type: 'TOGGLE_PLAYING',
+  payload: data,
+});
+
+export const setCurrentTime = (data) => ({
+  type: 'SET_CURRENT_TIME',
+  payload: data,
 });
