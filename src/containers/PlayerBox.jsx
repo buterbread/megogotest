@@ -7,16 +7,18 @@ import * as playerActions from '../redux/player/actions'
 import 'shaka-player/dist/demo.css';
 import 'shaka-player/dist/controls.css';
 
-function PlayerBox({ uri, actions, isBuffering }) {
+function PlayerBox({ url, actions }) {
   const playerRef = useRef(null);
 
   let timeStreamer;
 
-  async function playerLoadUri() {
+  async function playerLoadUrl() {
     const { current } = playerRef || {}
     const { player } = current || {};
 
-    await player.load(uri);
+    actions.togglePlaying(false);
+
+    await player.load(url);
 
     afterLoad();
   }
@@ -41,7 +43,7 @@ function PlayerBox({ uri, actions, isBuffering }) {
       actions.setBufferSize(player.getConfiguration().streaming.bufferingGoal);
     })
 
-    player.addEventListener('adaptation', (e) => {
+    player.addEventListener('adaptation', () => {
       updatePlaybackStats();
     })
 
@@ -50,7 +52,7 @@ function PlayerBox({ uri, actions, isBuffering }) {
       actions.togglePlaying(true);
     });
 
-    videoElement.addEventListener('pause', (e) => {
+    videoElement.addEventListener('pause', () => {
       stopTimeStreaming();
       actions.togglePlaying(false);
     });
@@ -97,7 +99,13 @@ function PlayerBox({ uri, actions, isBuffering }) {
     actions.setEstimatedBandwidth(estimatedBandwidth);
   }
 
-  useEffect(() => { playerLoadUri() }, []);
+  useEffect(() => {
+    playerLoadUrl();
+
+    return () => {
+      // remove event listeners & timers;
+    }
+  });
 
   return (
     <ShakaPlayer width="720" height="576" ref={playerRef} />
@@ -110,13 +118,4 @@ const mapDispatchToProps = (dispatch) => {
   }
 }
 
-const mapStateToProps = (state) => {
-  const { player } = state;
-  const { isBuffering } = player;
-
-  return {
-    isBuffering,
-  }
-};
-
-export default connect(mapStateToProps, mapDispatchToProps)(PlayerBox);
+export default connect(null, mapDispatchToProps)(PlayerBox);
